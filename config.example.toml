@@ -1,0 +1,28 @@
+# Copy this file to config.toml (or set CONFIG_FILE to point elsewhere) and fill in your servers.
+# Each [[servers]] entry is one JavaMelody-monitored microservice, selected by "name" when
+# calling a tool.
+
+[[servers]]
+name = "microservice1"
+url = "http://localhost:8080/microservice1/monitoring"
+user = "monitor"
+password = "***"
+
+[[servers]]
+name = "microservice2"
+url = "http://localhost:8080/microservice2/monitoring"
+user = "monitor"
+password = "***"
+
+# Optional, top-level defaults applied to every server unless overridden per-server below.
+# insecure = true       # accept self-signed https certificates
+# timeout_ms = 30000    # request timeout (ms), default 30000
+
+# Per-server overrides of the defaults above, e.g.:
+# [[servers]]
+# name = "legacy-service"
+# url = "https://localhost:8443/legacy/monitoring"
+# user = "monitor"
+# password = "***"
+# insecure = true
+# timeout_ms = 60000

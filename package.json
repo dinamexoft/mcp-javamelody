@@ -1,0 +1,40 @@
+{
+  "name": "mcp-javamelody",
+  "version": "1.0.0",
+  "type": "module",
+  "description": "MCP server for JavaMelody monitoring (read-only)",
+  "author": {
+    "name": "pavelety",
+    "url": "https://dinamexoft.com",
+    "githubUsername": "pavelety"
+  },
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/dinamexoft/mcp-javamelody.git"
+  },
+  "homepage": "https://github.com/dinamexoft/mcp-javamelody#readme",
+  "bugs": {
+    "url": "https://github.com/dinamexoft/mcp-javamelody/issues"
+  },
+  "keywords": [
+    "mcp",
+    "model-context-protocol",
+    "javamelody",
+    "monitoring",
+    "claude"
+  ],
+  "main": "server.js",
+  "bin": {
+    "mcp-javamelody": "server.js"
+  },
+  "scripts": {
+    "start": "node server.js --config-file config.toml"
+  },
+  "volta": {
+    "node": "24.20.0"
+  },
+  "dependencies": {
+    "smol-toml": "^1.9.0"
+  }
+}
