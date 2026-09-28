@@ -123,7 +123,7 @@ The same block on every OS — only the `--config-file` path syntax differs:
 }
 ```
 
-Restart Claude. You should see tools like `list_servers`, `get_counter_stats`, `get_statistics`, `get_part`,
+Restart Claude. You should see tools like `list_servers`, `get_counter_stats`, `get_part`,
 `list_database_requests` and `get_database_stats` available under `myproject-javamelody`.
 
 <sub>Prefer running from a local checkout instead of a global installation? `git clone` the repo, `npm install`, then
@@ -135,9 +135,7 @@ invocation styles read the same config file.</sub>
 - `list_servers` — list the configured microservices. Call first to get valid `server` values.
 - `get_counter_stats` — per-request aggregates for a date range: hits, mean/max/total duration, errors, one row per
   URL / SQL statement / Spring method / error / log message. The most granular way to find what's slow or failing.
-- `get_statistics` — full overview for a date range: all counters plus JVM info in one response.
-- `get_part` — live snapshot right now, no date range: JVM/host info, open JDBC connections, current requests, all
-  threads, JMX MBeans, OS processes, JNDI tree.
+- `get_part` — live snapshot right now, no date range: open JDBC connections, all threads, JMX MBeans, OS processes.
 - `list_database_requests` — list the database report names/indexes available (depends on the JDBC driver), call
   before `get_database_stats`.
 - `get_database_stats` — a database report for a date range, e.g. `pg_stat_activity`, `pg_locks`,

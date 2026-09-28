@@ -131,14 +131,15 @@ function getServer(name) {
 const DATE_PATTERN = 'yyyy-MM-dd';
 
 // Snapshot sections: always the live state, no date range.
+// Not exposed: the default report (all counters + JVM), part=jvm and part=currentRequests embed JavaInformations,
+// and part=jndi serializes an IOException when there is no JNDI context. On Java 16+ XStream can't reflect into
+// java.util.Collections$EmptyList / java.lang.Throwable without --add-opens, so JavaMelody logs a WARN and the
+// response is cut off mid-JSON.
 const PARTS = {
-  jvm: 'JVM/host info: Java version, heap/non-heap memory, CPU, GC time, threads count, uptime, OS, app server.',
   connections: 'Currently open JDBC connections with the stack trace of where each was opened (connection leak hunting).',
-  currentRequests: 'HTTP/SQL requests executing right now, with elapsed time and call tree (slow/hung request diagnosis).',
   threads: 'All JVM threads with state, CPU time and stack traces (deadlocks, blocked or busy threads).',
-  mbeans: 'JMX MBeans tree with attributes (connection pools, Tomcat, Hibernate, etc. internals).',
+  mbeans: 'JMX MBeans tree with attributes (connection pools, Tomcat, Hibernate, JVM memory/runtime, etc. internals).',
   processes: 'OS processes on the host (ps / tasklist output).',
-  jndi: 'JNDI tree bindings (datasources, mail sessions, env entries).',
 };
 const NO_DATE_PARTS = Object.keys(PARTS);
 
@@ -154,11 +155,10 @@ const COUNTER_NAMES = Object.keys(COUNTERS);
 
 const INSTRUCTIONS = `JavaMelody monitoring of one or more Java web applications (read-only).
 - This MCP server bundles multiple microservices. Every tool except list_servers requires a "server" argument. Call list_servers first to see the available names.
-- Historical tools (get_statistics, get_counter_stats, get_database_stats) require startDate and endDate in ${DATE_PATTERN} (inclusive). Keep ranges short: today, a day or a week.
+- Historical tools (get_counter_stats, get_database_stats) require startDate and endDate in ${DATE_PATTERN} (inclusive). Keep ranges short: today, a day or a week.
 - For "what is slow / failing" questions start with get_counter_stats (counter=http, sql, spring, error or log); it is the most granular source.
-- get_statistics is a large overview of all counters and JVM info at once; prefer get_counter_stats for a single area.
 - Durations are in milliseconds.
-- get_part returns the live state right now (threads, current requests, JVM, open connections...), no dates.
+- get_part returns the live state right now (threads, open connections, MBeans, OS processes), no dates.
 - Database reports: call list_database_requests first to see which report names/indexes exist, then get_database_stats.`;
 
 function validateDateRange(args) {
@@ -274,18 +274,6 @@ const TOOLS = [
     annotations: READ_ONLY,
   },
   {
-    name: 'get_statistics',
-    description:
-      'Full overview for a date range: all counters (http, sql, spring, error, log) plus JVM info ' +
-      'in one large response. Prefer get_counter_stats when only one area is needed.',
-    inputSchema: {
-      type: 'object',
-      properties: { ...SERVER_PROPS, ...DATE_RANGE_PROPS },
-      required: ['server', 'startDate', 'endDate'],
-    },
-    annotations: READ_ONLY,
-  },
-  {
     name: 'list_database_requests',
     description:
       'List the database report names available on the server with their indexes ' +
@@ -341,8 +329,6 @@ async function callTool(name, args = {}) {
       const range = validateDateRange(args);
       return fetchJson(server, { part: 'counterSummaryPerClass', counter: args.counter, ...range });
     }
-    case 'get_statistics':
-      return fetchJson(server, validateDateRange(args));
     case 'list_database_requests': {
       const names = await getDatabaseRequestNames(server);
       return names.map((n, index) => ({ index, name: n }));
