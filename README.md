@@ -135,7 +135,7 @@ invocation styles read the same config file.</sub>
 - `list_servers` — list the configured microservices. Call first to get valid `server` values.
 - `get_counter_stats` — per-request aggregates for a date range: hits, mean/max/total duration, errors, one row per
   URL / SQL statement / Spring method / error / log message. The most granular way to find what's slow or failing.
-- `get_part` — live snapshot right now, no date range: open JDBC connections, all threads, JMX MBeans, OS processes.
+- `get_part` — live snapshot right now, no date range: open JDBC connections, all threads, OS processes.
 - `list_database_requests` — list the database report names/indexes available (depends on the JDBC driver), call
   before `get_database_stats`.
 - `get_database_stats` — a database report for a date range, e.g. `pg_stat_activity`, `pg_locks`,

@@ -134,11 +134,11 @@ const DATE_PATTERN = 'yyyy-MM-dd';
 // Not exposed: the default report (all counters + JVM), part=jvm and part=currentRequests embed JavaInformations,
 // and part=jndi serializes an IOException when there is no JNDI context. On Java 16+ XStream can't reflect into
 // java.util.Collections$EmptyList / java.lang.Throwable without --add-opens, so JavaMelody logs a WARN and the
-// response is cut off mid-JSON.
+// response is cut off mid-JSON. part=mbeans is not exposed either: on WildFly reading every MBean attribute takes
+// over a minute, the client gives up and JavaMelody logs a WARN (UT010029: Stream is closed) once it finally writes.
 const PARTS = {
   connections: 'Currently open JDBC connections with the stack trace of where each was opened (connection leak hunting).',
   threads: 'All JVM threads with state, CPU time and stack traces (deadlocks, blocked or busy threads).',
-  mbeans: 'JMX MBeans tree with attributes (connection pools, Tomcat, Hibernate, JVM memory/runtime, etc. internals).',
   processes: 'OS processes on the host (ps / tasklist output).',
 };
 const NO_DATE_PARTS = Object.keys(PARTS);
@@ -158,7 +158,7 @@ const INSTRUCTIONS = `JavaMelody monitoring of one or more Java web applications
 - Historical tools (get_counter_stats, get_database_stats) require startDate and endDate in ${DATE_PATTERN} (inclusive). Keep ranges short: today, a day or a week.
 - For "what is slow / failing" questions start with get_counter_stats (counter=http, sql, spring, error or log); it is the most granular source.
 - Durations are in milliseconds.
-- get_part returns the live state right now (threads, open connections, MBeans, OS processes), no dates.
+- get_part returns the live state right now (threads, open connections, OS processes), no dates.
 - Database reports: call list_database_requests first to see which report names/indexes exist, then get_database_stats.`;
 
 function validateDateRange(args) {
@@ -214,7 +214,8 @@ const databaseRequestNamesByServer = new Map();
 async function getDatabaseRequestNames(server) {
   if (!databaseRequestNamesByServer.has(server.name)) {
     const data = await fetchJson(server, { part: 'database' });
-    databaseRequestNamesByServer.set(server.name, Array.isArray(data?.requestNames) ? data.requestNames : []);
+    const names = data?.databaseInformations?.requestNames;
+    databaseRequestNamesByServer.set(server.name, Array.isArray(names) ? names : []);
   }
   return databaseRequestNamesByServer.get(server.name);
 }
